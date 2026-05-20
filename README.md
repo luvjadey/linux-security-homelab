@@ -1,12 +1,12 @@
 # Linux Security Homelab
 
-**A hands-on enterprise-grade Linux security lab built to simulate real-world attack and defense scenarios — covering SSH hardening, firewall policy, intrusion prevention, audit logging, and automated threat detection.**
+**A hands-on enterprise-grade Linux security lab built to simulate real-world attack and defense scenarios - covering SSH hardening, firewall policy, intrusion prevention, audit logging, and automated threat detection. This is a personal homelab project built in an isolated virtual environment.**
 
 ---
 
 ## Overview
 
-This project demonstrates practical implementation of core Linux security principles on a self-hosted Ubuntu Server instance. The goal was to build a hardened server from scratch, simulate a real brute-force attack, and prove that the defensive controls catch and respond to it automatically — without human intervention.
+This project demonstrates practical implementation of core Linux security principles on a self-hosted Ubuntu Server instance. The goal was to build a hardened server from scratch, simulate a real brute-force attack, and prove that the defensive controls catch and respond to it automatically - without human intervention.
 
 Every configuration decision in this lab mirrors what you'd find in production enterprise environments: least-privilege access, layered defenses, immutable audit trails, and automated response.
 
@@ -24,7 +24,7 @@ Every configuration decision in this lab mirrors what you'd find in production e
 
 ---
 
-## Phase 1 — Secure Linux Server
+## Phase 1 - Secure Linux Server
 
 ### 1. SSH Hardening
 
@@ -66,7 +66,7 @@ sudo ufw status verbose
 
 ---
 
-### 3. Fail2Ban — Automated Intrusion Prevention
+### 3. Fail2Ban - Automated Intrusion Prevention
 
 Fail2Ban monitors system logs for repeated authentication failures and automatically bans offending IPs using firewall rules. It acts as an automated response layer — no human intervention required.
 
@@ -96,7 +96,7 @@ sudo fail2ban-client status sshd
 
 ---
 
-### 4. Auditd — Immutable Audit Logging
+### 4. Auditd - Immutable Audit Logging
 
 Auditd provides kernel-level syscall logging for critical system files. Unlike application logs, auditd operates below the application layer — it cannot be bypassed by a compromised application.
 
@@ -138,13 +138,13 @@ hydra -l fakeuser -P ~/wordlist.txt ssh://127.0.0.1 -t 4 -V
 | `-P wordlist.txt` | 20+ password wordlist |
 | `ssh://127.0.0.1` | Targeting the VM's own loopback interface |
 | `-t 4` | 4 parallel threads |
-| `-V` | Verbose — shows every attempt |
+| `-V` | Verbose - shows every attempt |
 
 **Attack flow:**
 1. Hydra begins making rapid SSH login attempts
 2. Fail2Ban detects failed attempts against `127.0.0.1` in the system journal
 3. After 5 failures within the `findtime` window, Fail2Ban issues a ban
-4. Hydra receives `Connection reset by peer` — the IP is firewalled
+4. Hydra receives `Connection reset by peer` - the IP is firewalled
 5. Fail2Ban logs the ban action with a precise timestamp
 
 **Fail2Ban log output confirming the ban:**
@@ -176,7 +176,7 @@ Status for the jail: sshd
 
 ### 6. Python Log Parser (`log_parser.py`)
 
-A custom Python script that parses `/var/log/auth.log` to surface suspicious SSH activity — repeated failures, invalid user attempts, and connection anomalies.
+A custom Python script that parses `/var/log/auth.log` to surface suspicious SSH activity - repeated failures, invalid user attempts, and connection anomalies.
 
 **What it does:**
 - Reads and parses `auth.log` line by line
@@ -196,25 +196,25 @@ python3 ~/log_parser.py
 
 ## Defense-in-Depth Summary
 
-This lab implements a layered security model — each control is independent, so failure of one layer does not compromise the others:
+This lab implements a layered security model - each control is independent, so failure of one layer does not compromise the others:
 
 ```
 [ Attacker ]
      |
      v
-[ UFW Firewall ]          ← Layer 1: Block unauthorized ports entirely
+[ UFW Firewall ]          - Layer 1: Block unauthorized ports entirely
      |
      v
-[ SSH Hardening ]         ← Layer 2: No root, no passwords, key-only access
+[ SSH Hardening ]         - Layer 2: No root, no passwords, key-only access
      |
      v
-[ Fail2Ban ]              ← Layer 3: Auto-ban IPs exceeding failure threshold
+[ Fail2Ban ]              - Layer 3: Auto-ban IPs exceeding failure threshold
      |
      v
-[ Auditd ]                ← Layer 4: Kernel-level immutable audit trail
+[ Auditd ]                - Layer 4: Kernel-level immutable audit trail
      |
      v
-[ Log Parser ]            ← Layer 5: Human-readable anomaly detection
+[ Log Parser ]            - Layer 5: Human-readable anomaly detection
 ```
 
 ---
@@ -236,8 +236,8 @@ This lab implements a layered security model — each control is independent, so
 
 ## Roadmap
 
-- **Phase 2** — Enterprise Features: WireGuard VPN, NGINX reverse proxy, Wazuh SIEM, Grafana monitoring dashboard
-- **Phase 3** — Detection & Monitoring: Suricata IDS, OpenVAS vulnerability scanning, automated alerting pipelines
+- **Phase 2** - Enterprise Features: WireGuard VPN, NGINX reverse proxy, Wazuh SIEM, Grafana monitoring dashboard
+- **Phase 3** - Detection & Monitoring: Suricata IDS, OpenVAS vulnerability scanning, automated alerting pipelines
 
 ---
 
