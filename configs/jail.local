@@ -1,0 +1,5 @@
+[DEFAULT]
+ignoreself = false
+
+[sshd]
+enabled = true
