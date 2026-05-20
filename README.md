@@ -1,6 +1,6 @@
 # Linux Security Homelab
 
-**A hands-on enterprise-grade Linux security lab built to simulate real-world attack and defense scenarios - covering SSH hardening, firewall policy, intrusion prevention, audit logging, and automated threat detection. This is a personal homelab project built in an isolated virtual environment.**
+**A Linux security lab built to simulate real-world attack and defense scenarios - covering SSH hardening, firewall policy, intrusion prevention, audit logging, and automated threat detection. This is a personal homelab project built in an isolated virtual environment.**
 
 ---
 
