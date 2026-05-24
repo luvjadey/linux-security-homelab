@@ -149,26 +149,11 @@ hydra -l fakeuser -P ~/wordlist.txt ssh://127.0.0.1 -t 4 -V
 
 **Fail2Ban log output confirming the ban:**
 ```
-fail2ban.filter   INFO    [sshd] Found 127.0.0.1 - 2026-05-20 19:30:22
-fail2ban.filter   INFO    [sshd] Found 127.0.0.1 - 2026-05-20 19:30:23
-fail2ban.filter   INFO    [sshd] Found 127.0.0.1 - 2026-05-20 19:30:23
-fail2ban.filter   INFO    [sshd] Found 127.0.0.1 - 2026-05-20 19:30:23
-fail2ban.filter   INFO    [sshd] Found 127.0.0.1 - 2026-05-20 19:30:23
+fail2ban.filter   INFO    [sshd] Found 127.0.0.1 (x5)
 fail2ban.actions  NOTICE  [sshd] Ban 127.0.0.1
 ```
 
-**Post-attack Fail2Ban status:**
-```
-Status for the jail: sshd
-|- Filter
-|  |- Currently failed: 0
-|  |- Total failed: 20
-|  `- Journal matches: _SYSTEMD_UNIT=ssh.service + _COMM=sshd
-`- Actions
-   |- Currently banned: 1
-   |- Total banned: 1
-   `- Banned IP list: 127.0.0.1
-```
+Post-attack status: `Currently banned: 1 | Total failed: 20 | Banned IP list: 127.0.0.1`
 
 > **Result: The brute-force attack was automatically detected and blocked. Zero valid credentials were found. The attacker IP was banned without any manual intervention.**
 
@@ -191,6 +176,52 @@ python3 ~/log_parser.py
 ```
 
 **Why this matters:** In environments without a SIEM (Security Information and Event Management system), a lightweight log parser like this fills the gap — giving an operator a fast, human-readable view of authentication anomalies without requiring commercial tooling. This is the foundation of the centralized logging work in Phase 2.
+
+---
+
+## Phase 2 - Enterprise Security Stack
+
+### 1. WireGuard VPN
+Deployed WireGuard to create an encrypted tunnel between the host and VM using public/private keypairs. The `wg0` interface runs on `10.0.0.1/24`, listening on UDP port 51820. This demonstrates network segmentation and zero-trust principles - every peer must have a valid keypair, no passwords accepted.
+
+```bash
+sudo wg show
+# interface: wg0
+# listening port: 51820
+```
+
+---
+
+### 2. NGINX Reverse Proxy
+Configured NGINX to sit in front of internal services, routing all incoming traffic through a single controlled entry point on port 80 and proxying to Wazuh's API on port 55000. This reduces attack surface by preventing direct exposure of internal service ports.
+
+Config location: `configs/nginx-homelab.conf`
+
+---
+
+### 3. Wazuh SIEM
+Deployed Wazuh Manager for centralized security log collection and correlation. Wazuh monitors system activity in real time, generating alerts for suspicious behavior across the environment.
+
+| Port | Purpose |
+|---|---|
+| 1514/udp | Agent communication |
+| 1515/tcp | Agent enrollment |
+| 55000/tcp | REST API |
+
+---
+
+### 4. Elasticsearch
+Installed Elasticsearch to serve as the backend data store for Wazuh alerts. Wazuh forwards security events into Elasticsearch where they are indexed and made queryable for analysis and visualization.
+
+---
+
+### 5. Grafana Monitoring Dashboard
+Deployed Grafana and connected it to Elasticsearch as a data source. Created a Wazuh Security Monitor dashboard for real-time visualization of security events. Grafana is accessible via browser on port 3000, port-forwarded through VirtualBox.
+
+Full monitoring pipeline:
+```
+Wazuh (detects) -> Elasticsearch (stores) -> Grafana (visualizes)
+```
 
 ---
 
@@ -224,19 +255,15 @@ This lab implements a layered security model - each control is independent, so f
 ```
 ├── README.md
 ├── log_parser.py           # Python auth.log parser
-├── screenshots/
-│   ├── fail2ban_before.png     # Status before attack (banned: 0)
-│   ├── hydra_attack.png        # Hydra running verbose output
-│   ├── fail2ban_after.png      # Status after attack (banned: 1)
-│   ├── fail2ban_log.png        # Ban action in fail2ban.log
-│   └── auth_log.png            # Invalid user attempts in auth.log
+├── configs/                # Sanitized configs (WireGuard, NGINX, Fail2Ban, auditd)
+└── screenshots/            # Phase 1 attack evidence + Phase 2 stack screenshots
 ```
 
 ---
 
 ## Roadmap
 
-- **Phase 2** - Enterprise Features: WireGuard VPN, NGINX reverse proxy, Wazuh SIEM, Grafana monitoring dashboard
+- **Phase 2** - Enterprise Security Stack ✅
 - **Phase 3** - Detection & Monitoring: Suricata IDS, OpenVAS vulnerability scanning, automated alerting pipelines
 
 ---
